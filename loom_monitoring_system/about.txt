@@ -213,3 +213,7 @@ Node.js: >=14.0.0
 Last Updated: 2025
 
 ================================================================================
+
+run this project use this command 
+
+.\run_all.ps1

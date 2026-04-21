@@ -5,7 +5,6 @@
  * Hardware Requirements:
  * - ESP32 Development Board
  * - 8x Hall Sensors (GPIO pins 4, 5, 12, 13, 14, 15, 16, 17)
- * - 10x Motor Control Relays (GPIO pins 18, 19, 21, 22, 23, 25, 26, 27, 32, 33)
  * - 1x Temperature Sensor DS18B20 or DHT22 (GPIO 2)
  * - 5V Power Supply
  * 
@@ -29,7 +28,6 @@ const int PORT = 8080;
 
 // Pin Definitions
 const int HALL_SENSORS[8] = {4, 5, 12, 13, 14, 15, 16, 17};
-const int MOTOR_PINS[10] = {18, 19, 21, 22, 23, 25, 26, 27, 32, 33};
 const int TEMP_SENSOR_PIN = 2;
 
 // Temperature Sensor Setup
@@ -37,6 +35,7 @@ OneWire oneWire(TEMP_SENSOR_PIN);
 DallasTemperature tempSensor(&oneWire);
 
 // Web Server
+
 WebServer server(PORT);
 
 // ===================== SYSTEM STATE =====================
@@ -44,7 +43,6 @@ struct SystemState {
   bool hallSensors[8] = {false};
   float loomLength = 0.0;
   float temperature = 25.0;
-  bool motors[10] = {false};
   bool isConnected = true;
   float totalLoomProduced = 0.0;
   unsigned long lastUpdated = 0;
@@ -111,12 +109,7 @@ void initializePins() {
   }
   Serial.println("✓ Hall sensors configured");
   
-  // Configure motor pins as outputs
-  for (int i = 0; i < 10; i++) {
-    pinMode(MOTOR_PINS[i], OUTPUT);
-    digitalWrite(MOTOR_PINS[i], LOW);
-  }
-  Serial.println("✓ Motor control pins configured");
+
 }
 
 // ===================== WiFi CONNECTION =====================
@@ -181,9 +174,6 @@ void setupRoutes() {
   // GET /api/status - Fetch current system status
   server.on("/api/status", HTTP_GET, handleGetStatus);
   
-  // POST /api/motor/control - Control a motor
-  server.on("/api/motor/control", HTTP_POST, handleMotorControl);
-  
   // POST /api/loom/release - Release loom for specified length
   server.on("/api/loom/release", HTTP_POST, handleLoomRelease);
   
@@ -216,12 +206,6 @@ void handleGetStatus() {
   doc["loomLength"] = serialized(String(systemState.loomLength, 1));
   doc["temperature"] = serialized(String(systemState.temperature, 1));
   
-  // Motors array
-  JsonArray motorsArray = doc.createNestedArray("motors");
-  for (int i = 0; i < 10; i++) {
-    motorsArray.add(systemState.motors[i]);
-  }
-  
   doc["isConnected"] = systemState.isConnected;
   doc["totalLoomProduced"] = serialized(String(systemState.totalLoomProduced, 1));
   doc["lastUpdated"] = getISOTimestamp();
@@ -233,46 +217,6 @@ void handleGetStatus() {
   server.send(200, "application/json", response);
   
   Serial.println("→ GET /api/status");
-}
-
-/**
- * POST /api/motor/control
- * Control a single motor
- * Request: {"motorId": 0, "state": true}
- */
-void handleMotorControl() {
-  if (!server.hasArg("plain")) {
-    server.send(400, "application/json", "{\"error\": \"No request body\"}");
-    return;
-  }
-  
-  StaticJsonDocument<256> doc;
-  DeserializationError error = deserializeJson(doc, server.arg("plain"));
-  
-  if (error) {
-    server.send(400, "application/json", "{\"error\": \"Invalid JSON\"}");
-    return;
-  }
-  
-  int motorId = doc["motorId"];
-  bool state = doc["state"];
-  
-  // Validate motor ID
-  if (motorId < 0 || motorId >= 10) {
-    server.send(400, "application/json", "{\"error\": \"Invalid motorId\"}");
-    return;
-  }
-  
-  // Control motor
-  digitalWrite(MOTOR_PINS[motorId], state ? HIGH : LOW);
-  systemState.motors[motorId] = state;
-  
-  Serial.print("→ POST /api/motor/control - Motor ");
-  Serial.print(motorId);
-  Serial.println(state ? " ON" : " OFF");
-  
-  // Send success response
-  server.send(200, "application/json", "{\"success\": true}");
 }
 
 /**
