@@ -1,0 +1,17 @@
+# Install dependencies
+flutter pub get
+
+# Run with dummy data (NO backend needed)
+flutter run -d chrome
+
+# Build for web
+flutter build web --release
+
+# Build for Windows
+flutter build windows --release
+
+# Build for macOS
+flutter build macos --release
+
+# Build for Linux
+flutter build linux --release

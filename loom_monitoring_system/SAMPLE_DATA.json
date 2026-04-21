@@ -1,0 +1,99 @@
+{
+  "description": "Sample JSON response data for Loom Monitoring System API",
+  "endpoints": {
+    "/api/status": {
+      "example": {
+        "hallSensors": [true, false, true, true, false, true, true, false],
+        "loomLength": 45.5,
+        "temperature": 35.2,
+        "motors": [true, false, true, false, true, false, true, false, true, false],
+        "isConnected": true,
+        "totalLoomProduced": 1250.5,
+        "lastUpdated": "2024-04-20T10:30:45.123Z"
+      },
+      "description": "Returns current system status with all sensors and motors"
+    },
+    "/api/motor/control": {
+      "request": {
+        "motorId": 0,
+        "state": true
+      },
+      "response": {
+        "success": true,
+        "motorId": 0,
+        "state": true
+      },
+      "description": "Controls a specific motor (ON/OFF)"
+    },
+    "/api/loom/release": {
+      "request": {
+        "lengthCm": 4.0
+      },
+      "response": {
+        "success": true,
+        "lengthReleased": 4.0,
+        "newTotalLength": 1254.5
+      },
+      "description": "Releases loom for specified length"
+    },
+    "/api/history": {
+      "example": {
+        "totalProduced": 5500.75,
+        "uptime": 3600,
+        "averageTemperature": 32.5,
+        "alertCount": 2,
+        "startTime": "2024-04-20T08:00:00.000Z"
+      },
+      "description": "Returns system statistics and history"
+    }
+  },
+  "field_descriptions": {
+    "hallSensors": "Array of 8 booleans, true=sensor working, false=sensor failed",
+    "loomLength": "Current loom length in centimeters (float)",
+    "temperature": "Current machine temperature in Celsius (float)",
+    "motors": "Array of 10 booleans, true=motor ON, false=motor OFF",
+    "isConnected": "System connection status (boolean)",
+    "totalLoomProduced": "Total loom produced since start in cm (float)",
+    "lastUpdated": "ISO8601 timestamp of last status update",
+    "motorId": "Motor ID (0-9)",
+    "state": "Motor state: true=ON, false=OFF",
+    "lengthCm": "Length to release in cm (must be 2, 4, or 8)",
+    "totalProduced": "Total cumulative loom produced in cm",
+    "uptime": "System uptime in seconds",
+    "averageTemperature": "Average temperature since system start",
+    "alertCount": "Number of active alerts"
+  },
+  "valid_values": {
+    "motorId": "0-9 (10 motors total)",
+    "sensorId": "0-7 (8 sensors total)",
+    "lengthCm": "2, 4, or 8",
+    "temperature_range": "0-100°C",
+    "loomLength_range": "0-200cm"
+  },
+  "test_scenarios": [
+    {
+      "name": "All sensors working",
+      "hallSensors": [true, true, true, true, true, true, true, true]
+    },
+    {
+      "name": "Some sensors failed",
+      "hallSensors": [true, false, true, true, false, true, true, false]
+    },
+    {
+      "name": "Temperature warning (>50°C)",
+      "temperature": 55.2
+    },
+    {
+      "name": "All motors active",
+      "motors": [true, true, true, true, true, true, true, true, true, true]
+    },
+    {
+      "name": "Maximum loom length",
+      "loomLength": 200.0
+    },
+    {
+      "name": "High production",
+      "totalLoomProduced": 10000.75
+    }
+  ]
+}

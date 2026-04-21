@@ -1,0 +1,215 @@
+================================================================================
+                    LOOM MONITORING SYSTEM - PROJECT INFO
+================================================================================
+
+PROJECT DESCRIPTION:
+A professional, industrial-grade Flutter web frontend for monitoring and 
+controlling an automated loom system with ESP32 microcontroller backend.
+
+The system includes:
+  - 8 Hall Sensors (detect loom movement ON/OFF status)
+  - 1 Length Sensor (measure loom length in cm)
+  - 1 Temperature Sensor (monitor machine temperature)
+  - 10 Motors (control loom storage and output)
+  - Real-time Dashboard with alerts and statistics
+
+================================================================================
+                              DEPENDENCIES
+================================================================================
+
+FRONTEND (Flutter Web):
+  SDK: Dart 3.11.5+
+  Framework: Flutter (latest stable)
+  
+  Core Dependencies:
+    - provider: ^6.0.0           (State management)
+    - http: ^1.1.0               (HTTP requests)
+    - web_socket_channel: ^2.4.0 (WebSocket communication)
+    - flutter_riverpod: ^2.4.0   (Advanced state management)
+    - intl: ^0.19.0              (Internationalization)
+    - google_fonts: ^6.0.0       (Custom fonts)
+
+  Dev Dependencies:
+    - flutter_test: sdk flutter
+    - flutter_lints: ^6.0.0
+
+BACKEND (Node.js/Express):
+  Node.js: >=14.0.0
+  Runtime: Node.js with npm
+
+  Core Dependencies:
+    - express: ^4.18.2           (Web framework)
+    - cors: ^2.8.5               (CORS handling)
+    - dotenv: ^16.3.1            (Environment variables)
+    - axios: ^1.6.0              (HTTP client)
+    - ws: ^8.14.0                (WebSocket server)
+    - sqlite3: ^5.1.6            (Database)
+    - body-parser: ^1.20.2       (Request body parsing)
+    - helmet: ^7.1.0             (Security headers)
+    - morgan: ^1.10.0            (HTTP logging)
+    - uuid: ^9.0.1               (UUID generation)
+
+  Dev Dependencies:
+    - nodemon: ^3.0.1            (Auto-reload on changes)
+    - eslint: ^8.53.0            (Code linting)
+    - jest: ^29.7.0              (Testing framework)
+
+================================================================================
+                           SETUP COMMANDS
+================================================================================
+
+1. CLONE/SETUP PROJECT:
+   git clone <repository-url>
+   cd loom_monitoring_system
+
+2. FRONTEND SETUP (Flutter):
+   flutter pub get
+
+3. BACKEND SETUP (Node.js):
+   cd backend
+   npm install
+
+4. DATABASE SETUP:
+   - SQLite3 database is auto-initialized by backend on first run
+   - Check backend/data directory for database files
+
+================================================================================
+                         RUNNING THE PROJECT
+================================================================================
+
+OPTION A: RUN BOTH FRONTEND + BACKEND IN ONE COMMAND
+   On Windows (PowerShell):
+   .\run_all.ps1
+
+   On macOS/Linux:
+   ./run_all.sh
+
+OPTION B: RUN MANUALLY
+
+   Terminal 1 - Backend (Node.js):
+   cd backend
+   npm run dev
+
+   Terminal 2 - Frontend (Flutter):
+   flutter run -d chrome    (or other web device)
+
+   Or for production web build:
+   flutter run -d web --release
+
+OPTION C: DOCKER DEPLOYMENT:
+   cd backend
+   docker-compose up --build
+
+================================================================================
+                          PROJECT STRUCTURE
+================================================================================
+
+Root Directory:
+├── lib/                    - Flutter frontend source code
+│   ├── main.dart          - Entry point
+│   ├── models/            - Data models
+│   ├── providers/         - State management (Provider, Riverpod)
+│   ├── screens/           - UI screens (Dashboard, etc.)
+│   ├── services/          - API & WebSocket services
+│   ├── theme/             - App theming
+│   └── widgets/           - Reusable UI components
+│
+├── backend/               - Express.js backend server
+│   ├── server.js          - Server entry point
+│   ├── package.json       - Node dependencies
+│   ├── docker-compose.yml - Docker configuration
+│   ├── Dockerfile         - Container setup
+│   └── data/              - SQLite database
+│
+├── web/                   - Web assets and config
+├── build/                 - Compiled build artifacts
+├── pubspec.yaml           - Flutter project configuration
+├── analysis_options.yaml  - Dart analysis configuration
+└── about.txt             - This file
+
+================================================================================
+                         API ENDPOINTS
+================================================================================
+
+Base URL: http://localhost:3000
+
+Main Endpoints:
+  GET  /api/sensors        - Get all sensor data
+  GET  /api/motors         - Get motor status
+  POST /api/motors/:id/on  - Turn motor on
+  POST /api/motors/:id/off - Turn motor off
+  GET  /api/statistics     - Get system statistics
+  WS   ws://localhost:3000 - WebSocket connection for real-time updates
+
+================================================================================
+                         ENVIRONMENT SETUP
+================================================================================
+
+Backend Environment (.env file in backend/ directory):
+  PORT=3000
+  NODE_ENV=development
+  DATABASE_PATH=./data/loom.db
+  CORS_ORIGIN=http://localhost:5173
+
+Frontend Environment:
+  API_URL=http://localhost:3000
+  WS_URL=ws://localhost:3000
+
+================================================================================
+                         COMMON COMMANDS
+================================================================================
+
+FLUTTER COMMANDS:
+  flutter pub get            - Install dependencies
+  flutter run -d chrome      - Run on web browser
+  flutter run -d web --release - Run production build
+  flutter clean              - Clean build artifacts
+  flutter doctor             - Check Flutter setup
+  flutter analyze            - Analyze Dart code
+
+NODE.JS COMMANDS:
+  npm install               - Install dependencies
+  npm run dev               - Run with auto-reload (nodemon)
+  npm start                 - Run production server
+  npm run lint              - Run ESLint
+  npm test                  - Run tests
+
+================================================================================
+                         TROUBLESHOOTING
+================================================================================
+
+Backend won't start:
+  → Check if port 3000 is available
+  → Delete node_modules and run: npm install
+  → Ensure Node.js version >= 14.0.0 (check: node --version)
+
+Frontend can't connect to backend:
+  → Verify backend is running on port 3000
+  → Check CORS settings in backend/server.js
+  → Verify API_URL in frontend matches backend address
+
+WebSocket connection issues:
+  → Check firewall/antivirus isn't blocking port 3000
+  → Ensure ws:// protocol is being used (not http://)
+  → Check browser console for connection errors
+
+================================================================================
+                         USEFUL LINKS
+================================================================================
+
+Flutter: https://flutter.dev
+Express.js: https://expressjs.com
+Node.js: https://nodejs.org
+WebSocket: https://www.npmjs.com/package/ws
+SQLite: https://www.sqlite.org
+
+================================================================================
+                         VERSION INFO
+================================================================================
+
+Project Version: 0.1.0+1
+Dart/Flutter SDK: ^3.11.5
+Node.js: >=14.0.0
+Last Updated: 2025
+
+================================================================================

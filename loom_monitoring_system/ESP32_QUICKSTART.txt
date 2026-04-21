@@ -1,0 +1,116 @@
+# ⚡ ESP32 QUICK START (10 MINUTES)
+
+**For experienced users who just want to get running.**
+
+---
+
+## 📦 What You're Getting
+
+Complete working Arduino firmware for ESP32 that provides:
+- REST API on port 8080
+- 8 Hall sensor inputs
+- 10 motor control outputs
+- 1 temperature sensor
+- WiFi connectivity
+- Production-ready code
+
+---
+
+## 🚀 Ultra-Quick Setup
+
+### 1. Arduino IDE Setup (5 minutes)
+```
+File → Preferences → Additional Boards Manager URLs
+→ https://dl.espressif.com/dl/package_esp32_index.json
+
+Tools → Board → Boards Manager → Search "ESP32" → Install
+```
+
+**Install Libraries** (Sketch → Include Library → Manage Libraries):
+- `ArduinoJson` by Benoit Blanchon
+- `OneWire` by Jim Studt
+- `DallasTemperature` by Miles Burton
+
+### 2. Configure (1 minute)
+Open `esp32_loom_controller.ino` and update:
+```cpp
+const char* SSID = "YOUR_WIFI";
+const char* PASSWORD = "YOUR_PASSWORD";
+```
+
+### 3. Upload (2 minutes)
+```
+Tools → Board → ESP32 Dev Module
+Tools → Upload Speed → 921600
+Tools → Port → Select your COM port
+Sketch → Upload
+```
+
+### 4. Test (2 minutes)
+Open Serial Monitor (115200) → Should see IP address displayed
+
+---
+
+## 🔌 Hardware Pinout (Copy-Paste)
+
+```
+HALL SENSORS (GPIO 4, 5, 12, 13, 14, 15, 16, 17)
+MOTORS (GPIO 18, 19, 21, 22, 23, 25, 26, 27, 32, 33)
+TEMPERATURE (GPIO 2)
+```
+
+**Detailed wiring**: See [ESP32_WIRING_GUIDE.md](ESP32_WIRING_GUIDE.md)
+
+---
+
+## 🧪 Quick Test
+
+```powershell
+# Check if ESP32 is running
+curl http://YOUR_ESP32_IP:8080/health
+
+# Get status
+curl http://YOUR_ESP32_IP:8080/api/status
+
+# Turn on Motor 0
+curl -X POST http://YOUR_ESP32_IP:8080/api/motor/control `
+  -H "Content-Type: application/json" -d '{"motorId": 0, "state": true}'
+```
+
+---
+
+## 📱 Connect to Flutter App
+
+Update in `lib/services/api_service.dart`:
+```dart
+static const String baseUrl = 'http://YOUR_ESP32_IP:8080';
+```
+
+Run:
+```bash
+flutter run -d chrome
+```
+
+---
+
+## 📚 Full Documentation
+
+- **Complete Setup**: [ESP32_SETUP_GUIDE.md](ESP32_SETUP_GUIDE.md)
+- **Hardware Wiring**: [ESP32_WIRING_GUIDE.md](ESP32_WIRING_GUIDE.md)
+- **Hardware Testing**: Use `esp32_test_sketch.ino`
+- **Overview**: [ESP32_README.md](ESP32_README.md)
+
+---
+
+## 🐛 Common Issues
+
+| Problem | Solution |
+|---------|----------|
+| WiFi won't connect | Check SSID/PASSWORD (case-sensitive), 2.4GHz only |
+| Upload fails | Try different USB cable, lower speed to 115200 |
+| Sensors not working | Check wiring, test with `esp32_test_sketch.ino` |
+| Can't reach API | Check ESP32 and phone on same WiFi network |
+
+---
+
+**You're done! Your ESP32 is now ready. 🎉**
