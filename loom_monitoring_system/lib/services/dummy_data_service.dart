@@ -27,6 +27,23 @@ class DummyDataService {
   }
 
   LoomData _generateInitialData() {
+    // Generate sensor pack data (8 sensors)
+    final sensorPackItems = List<SensorPackItem>.generate(8, (i) {
+      final isActive = _random.nextBool();
+      return SensorPackItem(
+        id: i,
+        status: isActive ? 'active' : 'inactive',
+        active: isActive,
+      );
+    });
+    final sensorPack = SensorPack(sensors: sensorPackItems);
+
+    // Generate servo motor data
+    final servoMotor = ServoMotor(
+      active: true,
+      running: _random.nextBool(),
+    );
+
     return LoomData(
       hallSensors: List<bool>.generate(8, (_) => _random.nextBool()),
       loomLength: _random.nextDouble() * 100,
@@ -35,6 +52,9 @@ class DummyDataService {
       isConnected: true,
       totalLoomProduced: 500 + _random.nextDouble() * 1000,
       lastUpdated: DateTime.now(),
+      sensorPack: sensorPack,
+      servoMotor: servoMotor,
+      humidity: 40 + _random.nextDouble() * 30,
     );
   }
 
@@ -54,8 +74,42 @@ class DummyDataService {
       newSensors[randomIndex] = !newSensors[randomIndex];
     }
     
+    // Update sensor pack (occasionally toggle sensor status)
+    SensorPack? newSensorPack;
+    if (_currentData.sensorPack != null) {
+      List<SensorPackItem> updatedSensors = _currentData.sensorPack!.sensors.map((s) {
+        bool newActive = s.active;
+        if (_random.nextDouble() < 0.08) {
+          newActive = !newActive;
+        }
+        return SensorPackItem(
+          id: s.id,
+          status: newActive ? 'active' : 'inactive',
+          active: newActive,
+        );
+      }).toList();
+      newSensorPack = SensorPack(sensors: updatedSensors);
+    }
+    
+    // Update servo motor status (occasionally toggle)
+    ServoMotor? newServoMotor;
+    if (_currentData.servoMotor != null) {
+      bool newRunning = _currentData.servoMotor!.running;
+      if (_random.nextDouble() < 0.1) {
+        newRunning = !newRunning;
+      }
+      newServoMotor = ServoMotor(
+        active: _currentData.servoMotor!.active,
+        running: newRunning,
+      );
+    }
+    
     // Update total produced
     double newTotal = _currentData.totalLoomProduced + newLength * 0.1;
+    
+    // Update humidity
+    double newHumidity = (_currentData.humidity ?? 50) + (_random.nextDouble() - 0.5);
+    newHumidity = newHumidity.clamp(20, 80);
     
     return LoomData(
       hallSensors: newSensors,
@@ -65,6 +119,9 @@ class DummyDataService {
       isConnected: true,
       totalLoomProduced: newTotal,
       lastUpdated: DateTime.now(),
+      sensorPack: newSensorPack,
+      servoMotor: newServoMotor,
+      humidity: newHumidity,
     );
   }
 

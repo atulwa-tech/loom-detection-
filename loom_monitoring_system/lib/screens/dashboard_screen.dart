@@ -13,8 +13,6 @@ class DashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  bool _showFailedSensorsOnly = false;
-
   @override
   Widget build(BuildContext context) {
     final loomData = ref.watch(loomDataProvider);
@@ -55,11 +53,42 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             _buildQuickStats(context, loomData),
             const SizedBox(height: 24),
 
+            // Servo Motor and Sensor Pack Row
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: ServoMotorCard(
+                    isActive: loomData.isServoMotorActive,
+                    isRunning: loomData.isServoMotorRunning,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
             // Alert Section
             if (failedSensors.isNotEmpty || temperatureWarning)
               _buildAlertSection(context, failedSensors, temperatureWarning),
             if (failedSensors.isNotEmpty || temperatureWarning)
               const SizedBox(height: 24),
+
+            // Sensor Pack Section
+            if (loomData.sensorPack != null)
+              Column(
+                children: [
+                  SensorPackCard(
+                    sensors: loomData.sensorPack!.sensors.map((s) => {
+                      'id': s.id,
+                      'active': s.active,
+                      'status': s.status,
+                    }).toList(),
+                    activeSensorCount: loomData.sensorPack!.activeSensorCount,
+                    inactiveSensorCount: loomData.sensorPack!.inactiveSensorCount,
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
 
             // Hall Sensors Section
             _buildSensorsSection(context, loomData),
@@ -268,10 +297,22 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             _buildStatRow('Total Loom Produced', '${data.totalLoomProduced.toStringAsFixed(2)} cm'),
             const SizedBox(height: 12),
             _buildStatRow('Current Temperature', '${data.temperature.toStringAsFixed(1)}°C'),
+            if (data.humidity != null) ...[
+              const SizedBox(height: 12),
+              _buildStatRow('Humidity', '${data.humidity!.toStringAsFixed(1)}%'),
+            ],
             const SizedBox(height: 12),
             _buildStatRow('Last Updated', _formatTime(data.lastUpdated)),
             const SizedBox(height: 12),
-            _buildStatRow('Sensors Status', '${data.hallSensors.where((s) => s).length}/${data.hallSensors.length}'),
+            _buildStatRow('Hall Sensors', '${data.hallSensors.where((s) => s).length}/${data.hallSensors.length}'),
+            if (data.sensorPack != null) ...[
+              const SizedBox(height: 12),
+              _buildStatRow('Sensor Pack Active', '${data.sensorPack!.activeSensorCount}/${data.sensorPack!.sensors.length}'),
+            ],
+            if (data.servoMotor != null) ...[
+              const SizedBox(height: 12),
+              _buildStatRow('Servo Motor', data.servoMotor!.statusString),
+            ],
           ],
         ),
       ),

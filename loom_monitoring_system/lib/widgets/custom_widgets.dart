@@ -352,3 +352,272 @@ class _LoomControlButtonState extends State<LoomControlButton> {
     );
   }
 }
+
+/// Servo Motor Status Widget
+class ServoMotorCard extends StatelessWidget {
+  final bool? isActive;
+  final bool? isRunning;
+
+  const ServoMotorCard({
+    Key? key,
+    this.isActive,
+    this.isRunning,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final active = isActive ?? false;
+    final running = isRunning ?? false;
+    
+    final statusColor = active 
+      ? (running ? Colors.orange : Colors.green)
+      : Colors.red;
+    
+    final statusText = active 
+      ? (running ? 'RUNNING' : 'ACTIVE')
+      : 'INACTIVE';
+
+    return Card(
+      elevation: active ? 3 : 1,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              statusColor.withOpacity(0.08),
+              statusColor.withOpacity(0.03),
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.propane_tank,
+                    color: statusColor,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Servo Motor',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: statusColor.withOpacity(0.3)),
+              ),
+              child: Text(
+                statusText,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: statusColor,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Individual Sensor Item Widget for Sensor Pack
+class SensorPackItemWidget extends StatelessWidget {
+  final int sensorId;
+  final bool isActive;
+  final String status;
+
+  const SensorPackItemWidget({
+    Key? key,
+    required this.sensorId,
+    required this.isActive,
+    required this.status,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final statusColor = isActive ? Colors.green : Colors.redAccent;
+    
+    return Container(
+      decoration: BoxDecoration(
+        color: statusColor.withOpacity(0.1),
+        border: Border.all(
+          color: statusColor.withOpacity(0.3),
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.sensors_outlined,
+            color: statusColor,
+            size: 20,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'S${sensorId + 1}',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: statusColor,
+              borderRadius: BorderRadius.circular(3),
+            ),
+            child: Text(
+              isActive ? 'ON' : 'OFF',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Sensor Pack Display Widget (8 Sensors)
+class SensorPackCard extends StatelessWidget {
+  final List<Map<String, dynamic>>? sensors;
+  final int? activeSensorCount;
+  final int? inactiveSensorCount;
+
+  const SensorPackCard({
+    Key? key,
+    this.sensors,
+    this.activeSensorCount,
+    this.inactiveSensorCount,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final sensorCount = sensors?.length ?? 8;
+    final activeCount = activeSensorCount ?? sensors?.where((s) => s['active'] == true).length ?? 0;
+    final inactiveCount = inactiveSensorCount ?? sensors?.where((s) => s['active'] == false).length ?? 0;
+
+    return Card(
+      elevation: 2,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.purple.withOpacity(0.05),
+              Colors.blue.withOpacity(0.05),
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.purple[100],
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.hub,
+                    color: Colors.purple[600],
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sensor Pack',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '$activeCount Active / $inactiveCount Inactive',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            
+            // Sensor Grid
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 4,
+                crossAxisSpacing: 8,
+                mainAxisSpacing: 8,
+                childAspectRatio: 1,
+              ),
+              itemCount: sensorCount,
+              itemBuilder: (context, index) {
+                if (sensors != null && index < sensors!.length) {
+                  final sensor = sensors![index];
+                  return SensorPackItemWidget(
+                    sensorId: sensor['id'] ?? index,
+                    isActive: sensor['active'] ?? false,
+                    status: sensor['status'] ?? 'inactive',
+                  );
+                } else {
+                  // Placeholder if no sensor data
+                  return SensorPackItemWidget(
+                    sensorId: index,
+                    isActive: false,
+                    status: 'inactive',
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

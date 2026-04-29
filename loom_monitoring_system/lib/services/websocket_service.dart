@@ -5,7 +5,7 @@ import '../models/index.dart';
 
 /// WebSocket Service for real-time loom data streaming
 class WebSocketService {
-  static const String _wsUrl = 'ws://localhost:8080/ws';
+  static const String _wsUrl = 'ws://localhost:3000/ws';
   
   WebSocketChannel? _channel;
   StreamController<LoomData>? _streamController;

@@ -34,8 +34,10 @@ class LoomDataNotifier extends StateNotifier<LoomData?> {
     });
   }
 
+  @override
   void dispose() {
     dummyDataService.dispose();
+    super.dispose();
   }
 }
 

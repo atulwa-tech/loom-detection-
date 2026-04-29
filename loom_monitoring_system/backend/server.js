@@ -444,6 +444,167 @@ app.get('/api/history', async (req, res) => {
   }
 });
 
+// ========== ESP32 DIRECT ENDPOINTS ==========
+
+/**
+ * POST /api/esp32/sensor-data
+ * Receive sensor data directly from ESP32
+ * Body: {
+ *   temp: number,
+ *   humidity: number,
+ *   servoMotor: { active: boolean, running: boolean },
+ *   sensorPack: [ { id: number, status: string, active: boolean } ],
+ *   loomLength: number,
+ *   totalLoomProduced: number,
+ *   timestamp: number
+ * }
+ */
+app.post('/api/esp32/sensor-data', (req, res) => {
+  try {
+    const sensorData = req.body;
+    
+    // Validate required fields
+    if (!sensorData.temp !== undefined || !sensorData.sensorPack) {
+      return res.status(400).json({
+        error: 'Missing required fields: temp, sensorPack',
+      });
+    }
+
+    // Log sensor data to database with all fields
+    const id = uuidv4();
+    const sensorPackJson = JSON.stringify(sensorData.sensorPack);
+    const servoMotorJson = JSON.stringify(sensorData.servoMotor || {});
+    
+    // Extract humidity for database
+    const humidity = sensorData.humidity || 0;
+    const totalLoomProduced = sensorData.totalLoomProduced || 0;
+    
+    db.run(
+      `INSERT INTO sensor_data 
+       (id, hall_sensors, temperature, loom_length, motors, humidity, total_produced, servo_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, sensorPackJson, sensorData.temp, sensorData.loomLength || 0, servoMotorJson, humidity, totalLoomProduced, JSON.stringify(sensorData.servoMotor || {})],
+      (err) => {
+        if (err) {
+          console.error('Database error:', err);
+        }
+      }
+    );
+
+    // Log event for alerts
+    if (sensorData.temp > 40) {
+      createEvent('temperature_alert', 
+        { temperature: sensorData.temp }, 
+        'warning'
+      );
+    }
+
+    // Check if any sensors are inactive
+    const inactiveSensors = sensorData.sensorPack.filter(s => !s.active);
+    if (inactiveSensors.length > 0) {
+      createEvent('sensor_inactive',
+        { count: inactiveSensors.length, sensors: inactiveSensors.map(s => s.id) },
+        'info'
+      );
+    }
+
+    // Broadcast to WebSocket clients
+    broadcastToClients('sensor_data', {
+      temp: sensorData.temp,
+      humidity: sensorData.humidity,
+      servoMotor: sensorData.servoMotor,
+      sensorPack: sensorData.sensorPack,
+      loomLength: sensorData.loomLength,
+      totalLoomProduced: sensorData.totalLoomProduced,
+      timestamp: new Date().toISOString(),
+    });
+
+    res.json({
+      success: true,
+      message: 'Sensor data received successfully',
+      timestamp: new Date().toISOString(),
+      sensors_received: sensorData.sensorPack.length,
+    });
+
+  } catch (error) {
+    console.error('Error processing sensor data:', error);
+    res.status(500).json({
+      error: 'Error processing sensor data',
+      details: error.message,
+    });
+  }
+});
+
+/**
+ * GET /api/esp32/latest-sensor-data
+ * Get the latest sensor data received from ESP32
+ */
+app.get('/api/esp32/latest-sensor-data', (req, res) => {
+  db.get(
+    `SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 1`,
+    (err, row) => {
+      if (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      
+      if (!row) {
+        return res.json({
+          success: false,
+          message: 'No sensor data received yet',
+          data: null,
+        });
+      }
+
+      // Parse JSON fields and build response
+      try {
+        const sensorPack = JSON.parse(row.hall_sensors || '[]');
+        const servoMotor = JSON.parse(row.motors || '{}');
+        const humidity = row.humidity || 0;
+        const totalProduced = row.total_produced || 0;
+        
+        // Build frontend-compatible response
+        const responseData = {
+          temp: row.temperature || 0,
+          humidity: humidity,
+          loomLength: row.loom_length || 0,
+          totalLoomProduced: totalProduced,
+          timestamp: row.timestamp,
+          
+          // Sensor pack with 8 sensors
+          sensorPack: {
+            sensors: Array.isArray(sensorPack) ? sensorPack : [],
+            activeSensorCount: Array.isArray(sensorPack) ? sensorPack.filter(s => s.active).length : 0,
+            inactiveSensorCount: Array.isArray(sensorPack) ? sensorPack.filter(s => !s.active).length : 0,
+          },
+          
+          // Servo motor status
+          servoMotor: {
+            active: servoMotor.active || false,
+            running: servoMotor.running || false,
+            stepsRemaining: servoMotor.stepsRemaining || 0,
+          },
+          
+          // Hall sensors (legacy format)
+          hallSensors: Array.isArray(sensorPack) ? sensorPack.map(s => s.active) : []
+        };
+        
+        res.json({
+          success: true,
+          data: responseData,
+          message: 'Latest sensor data retrieved successfully'
+        });
+      } catch (parseErr) {
+        console.error('Parse error:', parseErr);
+        res.status(500).json({
+          success: false,
+          error: 'Error parsing sensor data',
+          details: parseErr.message
+        });
+      }
+    }
+  );
+});
+
 // ========== DATABASE QUERY ENDPOINTS ==========
 
 /**
